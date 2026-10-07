@@ -1,0 +1,79 @@
+{
+  "files_in_context": [
+    {
+      "path": "index.html",
+      "record_state": "stale",
+      "record_source": "cline_edited",
+      "cline_read_date": 1791356462782,
+      "cline_edit_date": 1791356462782,
+      "user_edit_date": null
+    },
+    {
+      "path": "index.html",
+      "record_state": "stale",
+      "record_source": "read_tool",
+      "cline_read_date": 1791372029845,
+      "cline_edit_date": 1791356462782,
+      "user_edit_date": null
+    },
+    {
+      "path": "index.html",
+      "record_state": "stale",
+      "record_source": "cline_edited",
+      "cline_read_date": 1791372058325,
+      "cline_edit_date": 1791372058325,
+      "user_edit_date": null
+    },
+    {
+      "path": "index.html",
+      "record_state": "stale",
+      "record_source": "read_tool",
+      "cline_read_date": 1791372449603,
+      "cline_edit_date": 1791372058325,
+      "user_edit_date": null
+    },
+    {
+      "path": "index.html",
+      "record_state": "stale",
+      "record_source": "cline_edited",
+      "cline_read_date": 1791372493277,
+      "cline_edit_date": 1791372493277,
+      "user_edit_date": null
+    },
+    {
+      "path": "index.html",
+      "record_state": "stale",
+      "record_source": "cline_edited",
+      "cline_read_date": 1791372705554,
+      "cline_edit_date": 1791372705554,
+      "user_edit_date": null
+    },
+    {
+      "path": "index.html",
+      "record_state": "active",
+      "record_source": "cline_edited",
+      "cline_read_date": 1791372721639,
+      "cline_edit_date": 1791372721639,
+      "user_edit_date": null
+    }
+  ],
+  "model_usage": [
+    {
+      "ts": 1791356180449,
+      "model_id": "free-stack",
+      "model_provider_id": "openai",
+      "mode": "act"
+    }
+  ],
+  "environment_history": [
+    {
+      "ts": 1791356180448,
+      "os_name": "darwin",
+      "os_version": "24.5.0",
+      "os_arch": "arm64",
+      "host_name": "Visual Studio Code",
+      "host_version": "1.140.0",
+      "cline_version": "3.38.3"
+    }
+  ]
+}

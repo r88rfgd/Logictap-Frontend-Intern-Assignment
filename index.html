@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinic Calls</title>
+<style>
+  :root {
+    --bg: #F4F0EA;
+    --text: #1a1a1a;
+    --border: 3px solid #1a1a1a;
+    --shadow: 4px 4px 0px #1a1a1a;
+    --accent: #FF5A5F;
+    --accent-comfy: #FFF0C2;
+    --card-bg: #FFFFFF;
+    --muted: #888;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  
+.header {
+  padding: 12px 0;          /* was 24px all round */
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: var(--border);
+}
+
+
+
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 0;                /* was 0 0 24px 0 */
+  letter-spacing: -2px;
+  border-bottom: var(--border);
+  padding-bottom: 8px;
+  display: block;           /* was inline-block */
+  width: fit-content;       /* keeps the underline only as wide as the text */
+}
+  .search-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .search-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-box {
+    width: 100%;
+    padding: 12px 44px 12px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    border-radius: 0;
+    outline: none;
+    transition: all 0.1s;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 44px;
+  }
+
+  .search-box:focus {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+    background: var(--accent-comfy);
+  }
+
+  .search-box::placeholder {
+    color: #aaa;
+    font-weight: 500;
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-weight: bold;
+    transition: all 0.1s;
+  }
+
+  .search-clear:focus {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+
+  .search-clear:active {
+    transform: scale(0.95);
+  }
+
+  .search-clear.hidden {
+    display: none;
+  }
+
+  .result-count {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    min-height: 20px;
+  }
+
+  .sort-controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .sort-btn {
+    padding: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.1s;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sort-btn:focus {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+
+  .sort-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+  }
+
+  .sort-btn.active {
+    background: var(--accent-comfy);
+  }
+
+  .call-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 0 24px 24px 24px;
+  }
+
+  .call-card {
+    background: var(--card-bg);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .call-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .call-name {
+    font-weight: 900;
+    font-size: 1.3rem;
+    word-break: break-word;
+    line-height: 1.3;
+    hyphens: auto;
+  }
+
+  .call-name.unknown {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .call-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    border: 2px solid #1a1a1a;
+    background: var(--bg);
+    letter-spacing: 0.5px;
+    min-height: 44px;
+  }
+
+  .status-badge.answered { background: #A7F3D0; }
+  .status-badge.failed { background: #FECACA; }
+  .status-badge.no_answer { background: #FDE68A; }
+
+  .status-icon {
+    font-size: 1.1rem;
+  }
+
+  .duration-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    background: #E5E7EB;
+    border: 2px solid #1a1a1a;
+    letter-spacing: 0.5px;
+    min-height: 44px;
+  }
+
+  .call-summary {
+    font-size: 1rem;
+    line-height: 1.6;
+    background: var(--accent-comfy);
+    padding: 16px;
+    border: 2px solid #1a1a1a;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .call-summary.empty {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* Clamp only the text, not the whole box */
+  .summary-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .summary-text.expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  .toggle-summary {
+    display: block;
+    margin-top: 8px;
+    min-height: 44px;
+    padding: 8px 0;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--text);
+    text-decoration: underline;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .toggle-summary:focus {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+  .toggle-summary[hidden] {
+  display: none;
+}
+
+  .empty-state {
+    font-weight: 900;
+    text-align: center;
+    padding: 40px 20px;
+    border: var(--border);
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    margin: 0 24px;
+  }
+
+  .empty-state-title {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+  }
+
+  .empty-state-hint {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .empty-state-button {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    text-transform: uppercase;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    min-height: 44px;
+  }
+
+  .empty-state-button:focus {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+
+  .empty-state-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+  }
+
+  @media (max-width: 480px) {
+    .header {
+      padding: 16px;
+    }
+
+    .container {
+      padding: 0 16px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      font-size: 16px;
+      padding: 10px 40px 10px 12px;
+      min-height: 44px;
+    }
+
+    .call-list {
+      padding: 0 16px 16px 16px;
+      gap: 16px;
+    }
+
+    .call-card {
+      padding: 16px;
+    }
+
+    .call-name {
+      font-size: 1.15rem;
+    }
+
+    .sort-controls {
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .sort-btn {
+      font-size: 0.75rem;
+      padding: 10px;
+      min-height: 44px;
+    }
+
+    .empty-state {
+      margin: 0 16px;
+      font-size: 0.95rem;
+    }
+
+    .empty-state-title {
+      font-size: 1.2rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="container">
+    <h1>Call Log</h1>
+  </div>
+</div>
+
+<div class="container">
+  <div class="search-wrapper">
+    <label for="search-input" class="search-label">Search calls</label>
+    <div class="search-input-wrapper">
+      <input 
+        type="text" 
+        id="search-input" 
+        class="search-box" 
+        placeholder="Name of caller..." 
+        autocomplete="off"
+        inputmode="search"
+        aria-label="Search calls by caller name"
+      >
+      <button 
+        class="search-clear hidden" 
+        id="search-clear" 
+        aria-label="Clear search"
+        tabindex="0"
+      >✕</button>
+    </div>
+  </div>
+
+  <div 
+    class="result-count" 
+    id="result-count" 
+    aria-live="polite" 
+    aria-atomic="true"
+  ></div>
+
+  <div class="sort-controls">
+    <button class="sort-btn active" data-sort="default" aria-pressed="true">Default</button>
+    <button class="sort-btn" data-sort="name" aria-pressed="false">Name</button>
+    <button class="sort-btn" data-sort="status" aria-pressed="false">Status</button>
+    <button class="sort-btn" data-sort="duration" aria-pressed="false">Duration</button>
+  </div>
+  
+  <div id="call-list" class="call-list"></div>
+</div>
+
+<script>
+  const rawData = [
+    {"id": 1, "name": "Anita Sharma", "status": "answered", "duration_secs": 137, "summary": "Booked a follow-up for Friday."},
+    {"id": 2, "name": "Rahul Shah", "status": "failed", "duration_secs": 0, "summary": ""},
+    {"id": 3, "name": null, "status": "answered", "duration_secs": 64, "summary": "Asked about clinic timings."},
+    {"id": 4, "name": "Mohammed Irfan Abdul Rahman Siddiqui", "status": "answered", "duration_secs": 3725, "summary": "Called about his mother's knee surgery. Wanted to know the cost, how many days she would stay, whether insurance is accepted, what to bring on the day, and if the doctor could call him back personally before he decides. Asked the same questions again for his father."},
+    {"id": 5, "name": "priya nair", "status": "no_answer", "duration_secs": 0, "summary": ""},
+    {"id": 6, "name": "Deepak Verma", "status": "answered", "duration_secs": 212, "summary": "Said the doctor was <b>very</b> helpful."},
+    {"id": 7, "name": "Sunita Rao", "status": "answered", "duration_secs": 59, "summary": "Rescheduled to Monday."}
+  ];
+
+  // Normalize name capitalization
+  function normalizeName(name) {
+    if (!name || typeof name !== 'string') return null;
+    return name
+      .trim()
+      .split(/\s+/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
+  // Validate and normalize data
+  function validateData(records) {
+    return records.map(call => ({
+      id: typeof call.id === 'number' ? call.id : 0,
+      name: call.name ? normalizeName(call.name) : null,
+      searchName: call.name ? normalizeName(call.name).toLowerCase() : "unknown caller",
+      status: typeof call.status === 'string' ? call.status : 'unknown',
+      duration_secs: typeof call.duration_secs === 'number' ? Math.max(0, call.duration_secs) : 0,
+      summary: typeof call.summary === 'string' ? call.summary.trim() : ''
+    }));
+  }
+
+  const data = validateData(rawData);
+  let currentSort = 'default';
+  let sortedData = [...data];
+
+  const statusIcons = {
+    'answered': '✓',
+    'failed': '✕',
+    'no_answer': '☎'
+  };
+
+  const statusLabels = {
+    'answered': 'Answered',
+    'failed': 'Failed',
+    'no_answer': 'No answer'
+  };
+
+  function formatDuration(secs) {
+    if (secs === 0) return "—";
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    
+    let parts = [];
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    if (s > 0) parts.push(`${s}s`);
+    
+    return parts.join(' ') || "0s";
+  }
+
+  function sortData(sortType) {
+    let sorted = [...data];
+    
+    if (sortType === 'name') {
+      sorted.sort((a, b) => {
+        const nameA = a.searchName;
+        const nameB = b.searchName;
+        return nameA.localeCompare(nameB);
+      });
+    } else if (sortType === 'status') {
+      const statusOrder = { 'answered': 0, 'failed': 1, 'no_answer': 2, 'unknown': 3 };
+      sorted.sort((a, b) => {
+        const orderA = statusOrder[a.status] ?? 3;
+        const orderB = statusOrder[b.status] ?? 3;
+        return orderA - orderB;
+      });
+    } else if (sortType === 'duration') {
+      sorted.sort((a, b) => b.duration_secs - a.duration_secs);
+    }
+    
+    return sorted;
+  }
+
+  const listContainer = document.getElementById('call-list');
+  const searchInput = document.getElementById('search-input');
+  const searchClear = document.getElementById('search-clear');
+  const resultCount = document.getElementById('result-count');
+  const sortButtons = document.querySelectorAll('.sort-btn');
+
+  function updateResultCount(total, filtered) {
+    if (filtered === 0 && total === 0) {
+      resultCount.textContent = '';
+    } else if (filtered === 0) {
+      resultCount.textContent = '';
+    } else {
+      resultCount.textContent = `Showing ${filtered} of ${total} ${total === 1 ? 'call' : 'calls'}`;
+    }
+  }
+
+  function renderList(filterText = "") {
+    listContainer.innerHTML = "";
+    
+    const trimmedFilter = filterText.trim().toLowerCase();
+    
+    let filtered;
+    if (trimmedFilter === '') {
+      filtered = sortedData;
+    } else {
+      filtered = sortedData.filter(call => {
+        return call.searchName.includes(trimmedFilter);
+      });
+    }
+
+    updateResultCount(data.length, filtered.length);
+
+    if (filtered.length === 0 && data.length === 0) {
+      // No data at all
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'empty-state';
+      emptyCard.innerHTML = `
+        <div class="empty-state-title">No call data</div>
+        <div class="empty-state-hint">There are no calls to display.</div>
+      `;
+      listContainer.appendChild(emptyCard);
+      return;
+    }
+
+    if (filtered.length === 0) {
+      // Search resulted in no matches
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'empty-state';
+      const displayText = filterText.trim() ? `"${filterText.trim()}"` : '';
+      emptyCard.innerHTML = `
+        <div class="empty-state-title">No calls found for ${displayText}</div>
+        <div class="empty-state-hint">Check the spelling or try fewer letters</div>
+        <button class="empty-state-button" id="clear-from-empty">Clear Search</button>
+      `;
+      listContainer.appendChild(emptyCard);
+      
+      const clearBtn = emptyCard.querySelector('#clear-from-empty');
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchClear.classList.add('hidden');
+        searchInput.focus();
+        renderList('');
+      });
+      return;
+    }
+
+    // Render calls
+    filtered.forEach(call => {
+      const card = document.createElement('div');
+      card.className = 'call-card';
+      
+      const displayName = call.name || "Unknown caller";
+      const nameClass = !call.name ? "call-name unknown" : "call-name";
+      
+      const statusIcon = statusIcons[call.status] || '?';
+      const statusLabel = statusLabels[call.status] || 'Unknown';
+      
+      const summaryText = call.summary;
+      const hasSummary = summaryText && summaryText.length > 0;
+      
+      // Build HTML
+      const nameDiv = document.createElement('div');
+      nameDiv.className = nameClass;
+      nameDiv.textContent = displayName;
+      
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'call-header';
+      headerDiv.appendChild(nameDiv);
+      
+      const metaDiv = document.createElement('div');
+      metaDiv.className = 'call-meta';
+      
+      const statusBadge = document.createElement('div');
+      statusBadge.className = `status-badge ${call.status}`;
+      statusBadge.innerHTML = `<span class="status-icon">${statusIcon}</span>${statusLabel}`;
+      metaDiv.appendChild(statusBadge);
+      
+      const durationBadge = document.createElement('div');
+      durationBadge.className = 'duration-badge';
+      durationBadge.innerHTML = `<span>⏳</span>${formatDuration(call.duration_secs)}`;
+      metaDiv.appendChild(durationBadge);
+      
+      headerDiv.appendChild(metaDiv);
+      card.appendChild(headerDiv);
+      
+      // Summary section
+      let toggleCheck = null;
+
+      if (hasSummary) {
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'call-summary';
+
+        const summaryTextEl = document.createElement('div');
+        summaryTextEl.className = 'summary-text';
+        
+        // Handle bold tags safely as requested
+        if (summaryText.includes('<b>') && summaryText.includes('</b>')) {
+          const temp = document.createElement('div');
+          temp.innerHTML = summaryText;
+          
+          // Only allow expected B tags
+          Array.from(temp.childNodes).forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              summaryTextEl.appendChild(document.createTextNode(node.textContent));
+            } else if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'B') {
+              const b = document.createElement('b');
+              b.textContent = node.textContent; // Safe plain text inside
+              summaryTextEl.appendChild(b);
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              summaryTextEl.appendChild(document.createTextNode(node.textContent)); // Strip other tags
+            }
+          });
+        } else {
+          summaryTextEl.textContent = summaryText;
+        }
+        
+        summaryDiv.appendChild(summaryTextEl);
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'toggle-summary';
+        toggleBtn.textContent = 'Read more';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.hidden = true; // shown only if text is actually clamped
+        summaryDiv.appendChild(toggleBtn);
+
+        toggleBtn.addEventListener('click', () => {
+          const expanded = summaryTextEl.classList.toggle('expanded');
+          toggleBtn.textContent = expanded ? 'Show less' : 'Read more';
+          toggleBtn.setAttribute('aria-expanded', String(expanded));
+        });
+
+        // Must run after the card is in the DOM so heights can be measured
+        toggleCheck = () => {
+          if (summaryTextEl.scrollHeight > summaryTextEl.clientHeight + 1) {
+            toggleBtn.hidden = false;
+          }
+        };
+
+        card.appendChild(summaryDiv);
+      } else {
+        const noSummaryDiv = document.createElement('div');
+        noSummaryDiv.className = 'call-summary empty';
+        noSummaryDiv.textContent = 'No summary';
+        card.appendChild(noSummaryDiv);
+      }
+
+      listContainer.appendChild(card);
+      if (toggleCheck) toggleCheck();
+    });
+  }
+
+  // Sort button handlers
+  sortButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sortButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      currentSort = btn.dataset.sort;
+      sortedData = sortData(currentSort);
+      renderList(searchInput.value);
+    });
+  });
+
+  // Search input handler
+  searchInput.addEventListener('input', (e) => {
+    const value = e.target.value;
+    if (value.trim()) {
+      searchClear.classList.remove('hidden');
+    } else {
+      searchClear.classList.add('hidden');
+    }
+    renderList(value);
+  });
+
+  // Clear button handler
+  searchClear.addEventListener('click', (e) => {
+    e.preventDefault();
+    searchInput.value = '';
+    searchClear.classList.add('hidden');
+    searchInput.focus();
+    renderList('');
+  });
+
+  // Initial render
+  sortedData = sortData(currentSort);
+  renderList();
+</script>
+</body>
+</html>

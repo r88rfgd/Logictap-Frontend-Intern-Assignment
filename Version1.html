@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Clinic Calls</title>
+<style>
+  :root {
+    --bg: #F4F0EA;
+    --text: #1a1a1a;
+    --border: 3px solid #1a1a1a;
+    --shadow: 4px 4px 0px #1a1a1a;
+    --accent: #FF5A5F;
+    --accent-comfy: #FFF0C2;
+    --card-bg: #FFFFFF;
+  }
+  
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-top: 0;
+    margin-bottom: 24px;
+    letter-spacing: -2px;
+    border-bottom: var(--border);
+    padding-bottom: 8px;
+    display: inline-block;
+  }
+
+  .search-box {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    border-radius: 0; 
+    box-sizing: border-box;
+    outline: none;
+    margin-bottom: 32px;
+    transition: all 0.1s;
+    font-family: inherit;
+  }
+  
+  .search-box:focus {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+    background: var(--accent-comfy);
+  }
+  .search-box::placeholder {
+    color: #888;
+    font-weight: 800;
+  }
+
+  .call-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .call-card {
+    background: var(--card-bg);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .call-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .call-name {
+    font-weight: 900;
+    font-size: 1.4rem;
+    word-break: break-word;
+    line-height: 1.1;
+  }
+
+  .call-name.unknown {
+    color: #666;
+    font-style: italic;
+  }
+
+  .call-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .tag {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    border: 2px solid #1a1a1a;
+    background: var(--bg);
+    letter-spacing: 0.5px;
+  }
+
+  .tag.status-answered { background: #A7F3D0; }
+  .tag.status-failed { background: #FECACA; }
+  .tag.status-no_answer { background: #FDE68A; }
+
+  .tag.duration {
+    background: #E5E7EB;
+  }
+
+  .call-summary {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    background: var(--accent-comfy);
+    padding: 16px;
+    border: 2px solid #1a1a1a;
+    font-weight: 500;
+  }
+
+  .empty-state {
+    font-weight: 900;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 40px 20px;
+    border: var(--border);
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+  }
+
+  @media (max-width: 375px) {
+    body {
+      padding: 16px;
+    }
+    h1 {
+      font-size: 2rem;
+    }
+    .call-card {
+      padding: 16px;
+    }
+    .call-name {
+      font-size: 1.25rem;
+    }
+    .search-box {
+      font-size: 1rem;
+      padding: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Call Log</h1>
+  
+  <input type="text" id="search" class="search-box" placeholder="SEARCH BY NAME..." autocomplete="off">
+  
+  <div id="call-list" class="call-list"></div>
+</div>
+
+<script>
+  const data = [
+    {"id": 1, "name": "Anita Sharma", "status": "answered", "duration_secs": 137, "summary": "Booked a follow-up for Friday."},
+    {"id": 2, "name": "Rahul Shah", "status": "failed", "duration_secs": 0, "summary": ""},
+    {"id": 3, "name": null, "status": "answered", "duration_secs": 64, "summary": "Asked about clinic timings."},
+    {"id": 4, "name": "Mohammed Irfan Abdul Rahman Siddiqui", "status": "answered", "duration_secs": 3725, "summary": "Called about his mother's knee surgery. Wanted to know the cost, how many days she would stay, whether insurance is accepted, what to bring on the day, and if the doctor could call him back personally before he decides. Asked the same questions again for his father."},
+    {"id": 5, "name": "priya nair", "status": "no_answer", "duration_secs": 0, "summary": ""},
+    {"id": 6, "name": "Deepak Verma", "status": "answered", "duration_secs": 212, "summary": "Said the doctor was <b>very</b> helpful."},
+    {"id": 7, "name": "Sunita Rao", "status": "answered", "duration_secs": 59, "summary": "Rescheduled to Monday."},
+    {"id": 7, "name": "Sunita Rao", "status": "answered", "duration_secs": 59, "summary": "Rescheduled to Monday."}
+  ];
+
+  function formatDuration(secs) {
+    if (secs === 0) return "0s";
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    
+    let parts = [];
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0) parts.push(`${m}m`);
+    if (s > 0 || parts.length === 0) parts.push(`${s}s`);
+    
+    return parts.join(" ");
+  }
+
+  const listContainer = document.getElementById('call-list');
+  const searchInput = document.getElementById('search');
+
+  function renderList(filterText = "") {
+    listContainer.innerHTML = "";
+    
+    const lowerFilter = filterText.toLowerCase();
+    
+    const filtered = data.filter(call => {
+      const nameStr = call.name ? call.name.toLowerCase() : "unknown";
+      return nameStr.includes(lowerFilter);
+    });
+
+    if (filtered.length === 0) {
+      listContainer.innerHTML = "<div class='empty-state'>NO RESULTS FOUND.</div>";
+      return;
+    }
+
+    filtered.forEach(call => {
+      const card = document.createElement('div');
+      card.className = 'call-card';
+      
+      const isUnknown = !call.name;
+      const displayName = call.name || "Unknown";
+      const nameClass = isUnknown ? "call-name unknown" : "call-name";
+      
+      const statusClass = `status-${call.status}`;
+      const displayStatus = call.status.replace("_", " ");
+      
+      const summaryHTML = call.summary 
+        ? `<div class="call-summary">${call.summary}</div>` 
+        : "";
+
+      card.innerHTML = `
+        <div class="call-header">
+          <div class="${nameClass}">${displayName}</div>
+          <div class="call-meta">
+            <span class="tag ${statusClass}">${displayStatus}</span>
+            <span class="tag duration">⏳ ${formatDuration(call.duration_secs)}</span>
+          </div>
+        </div>
+        ${summaryHTML}
+      `;
+      listContainer.appendChild(card);
+    });
+  }
+
+  searchInput.addEventListener('input', (e) => {
+    renderList(e.target.value);
+  });
+
+  renderList();
+</script>
+</body>
+</html>
